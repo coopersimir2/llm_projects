@@ -1,4 +1,5 @@
 import os
+import time
 from textwrap import dedent
 
 import gradio as gr
@@ -9,6 +10,7 @@ from openai import OpenAI
 load_dotenv(override=True)
 
 MODEL = "gpt-4.1-mini"
+SHARE_URL = ""
 
 
 def build_client() -> OpenAI:
@@ -135,13 +137,40 @@ def create_story(
         yield f"{message}\n\nStory generation stopped because of an API error: {exc}"
 
 
+def get_share_link_markdown() -> str:
+    if SHARE_URL:
+        return f"**Link to Story Maker:** [{SHARE_URL}]({SHARE_URL})"
+    return "_Creating shareable link..._"
+
+
+def refresh_share_link() -> tuple[str, gr.Timer]:
+    if SHARE_URL:
+        return get_share_link_markdown(), gr.Timer(active=False)
+    return get_share_link_markdown(), gr.Timer(active=True)
+
+
 def build_app() -> gr.Blocks:
     with gr.Blocks(title="Story Maker") as app:
         gr.Markdown(
             """
             # Story Maker
-            Build a short story with three characters using the OpenAI API.
             """
+        )
+        share_link = gr.Markdown(get_share_link_markdown())
+        gr.Markdown("Build a short story with three characters using the OpenAI API.")
+        share_link_timer = gr.Timer(value=1, active=True)
+
+        app.load(
+            fn=refresh_share_link,
+            outputs=[share_link, share_link_timer],
+            queue=False,
+            show_progress="hidden",
+        )
+        share_link_timer.tick(
+            fn=refresh_share_link,
+            outputs=[share_link, share_link_timer],
+            queue=False,
+            show_progress="hidden",
         )
 
         with gr.Row():
@@ -214,8 +243,22 @@ def build_app() -> gr.Blocks:
 
 
 def main() -> None:
+    global SHARE_URL
+
     app = build_app()
-    app.launch(inbrowser=True)
+    _, _, share_url = app.launch(
+        inbrowser=True,
+        share=True,
+        prevent_thread_lock=True,
+        show_error=True,
+    )
+    SHARE_URL = share_url or ""
+
+    try:
+        app.block_thread()
+    except KeyboardInterrupt:
+        app.close()
+        time.sleep(0.2)
 
 
 if __name__ == "__main__":
