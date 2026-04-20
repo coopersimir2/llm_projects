@@ -15,14 +15,4 @@
 - Python environment managed with `uv`
 - `OPENAI_API_KEY` set in your environment or `.env`
 
-## Run
 
-From the project root:
-
-```bash
-uv run week2/sql_analyzer_app.py
-```
-
-## File
-
-- App: `week2/sql_analyzer_app.py`
