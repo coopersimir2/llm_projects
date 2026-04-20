@@ -16,3 +16,4 @@
 - `OPENAI_API_KEY` set in your environment or `.env`
 
 
+<img width="1875" height="935" alt="Screenshot 2026-04-19 at 9 04 53 PM" src="https://github.com/user-attachments/assets/9635c2df-c2a4-4530-b313-7e262e700c9c" />
